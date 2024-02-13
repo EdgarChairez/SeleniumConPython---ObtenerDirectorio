@@ -4,32 +4,38 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC  
 from selenium.webdriver.firefox.options import Options  # Ocultar navegador
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException as WDE
+from selenium.common.exceptions import InvalidSwitchToTargetException as ISE
+from selenium.common.exceptions import TimeoutException as TOE
 from datetime import date
 from datetime import datetime
 import time
 
 print('Inicia el proceso')
 # Crea LOG #
-log=open("log_"+str((date.today())) + ".txt","w") 
 now = str(datetime.now())
-datos_log=open("datos_log_"+str((date.today())) + ".txt","w") 
+log=open("log_"+str((date.today())) + ".txt","a") 
+datos_log=open("datos_log_"+str((date.today())) + ".txt","a") 
 # Crea LOG #
+
 
 #driver = webdriver.Firefox()                               # Mostrar proceso
 # Ocultar navegador
 log.write('-- Inicia servicio - ' + now + ' --\n')
+datos_log.write('-- Inicia servicio - ' + now + ' --')
 firefox_options = Options()                                 # Ocultar proceso
 firefox_options.add_argument('--headless')                  # Ocular proceso
 driver = webdriver.Firefox(options=firefox_options)         # Ocularr proceso
 print('. ')
 # Ocultar navegador
 
+
 #driver.get('https://www.coppel.com/')
 driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login")
 
 
 # Iniciar secion #
-log.write('\n-- Inicia secion - ' + now + ' --')
+log.write('\n-- Inicia secion - ' + now + ' --\n')
 print('. ')
 username = 'Admin'
 password = 'admin123'
@@ -44,84 +50,128 @@ except Exception as e:
 
 # Seleccionar Directory #
 try:
-    log.write('\n-- Selecciona Directory  - ' + now + ' --')
+    log.write('\n-- Selecciona Directory  - ' + now + ' --\n')
     WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//span[@class='oxd-text oxd-text--span oxd-main-menu-item--name'][contains(.,'Directory')]"))).click()
     print('. ')
+    datos_log.write('\n.')
 except Exception as e:
     log.write('Error al precionar "Directory": ', e)
 # Seleccionar Directory
 
+
+# Aplicar filtro #
 def filtro(locacion):
-    # Aplicar filtro #
-    log.write('\n\n-- Selecciona Filtro  - ' + now + ' --')
-    # Seleccionar selector
-    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[3]/div[1]/div[2]"))).click()
-    # Seleccionar Locación
-    WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//span[contains(.,'" + locacion + "')]"))).click() 
-    # Boton Buscar
+    print(".\nSe realiza busqueda de: " + locacion)
+    datos_log.write(".\nSe realiza busqueda de: " + locacion + " - "+ now + "\n")
+    log.write('\n-- Selecciona Filtro  - ' + now + ' --\n')
+    try:
+        # Seleccionar selector
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[3]/div[1]/div[2]"))).click()
+        # Seleccionar Locación
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//span[contains(.,'" + locacion + "')]"))).click() 
+        # Boton Buscar
+        time.sleep(2)
+        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/button[2]"))).click()
+        # Boton Buscar
+    except TOE as t:
+        print("No se encontro informacion para la busqueda: " + locacion)
+        datos_log.write("No se encontro informacion para la busqueda: " + locacion)
+# Aplicar filtro #
+
+
+# Seleccionar card #
+def seleccionar(select):
     time.sleep(2)
-    WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/button[2]"))).click()
-    # Obtener datos
-    time.sleep(1)
-    datos = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/div[2]/div[1]")))        # Obtener Datos
-    # Aplicar Filtro #
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "(//div[contains(@class,'oxd-sheet oxd-sheet--rounded oxd-sheet--white orangehrm-directory-card')])[" + str(select) + "]"))).click() 
+# Seleccionar card #
 
-    # Imprimir lista #
-    log.write('\n-- Crea Lista: ' + locacion + ' - ' + now + ' --')
-    datos_log.write('-- -- -- -- -- -- -- -- -- -- -- -- -- -- --')
-    datos_log.write('\nHubicacion: ' + locacion + '\n\n')
+def cantidad():
+    time.sleep(2)
+    cantidad = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/div[2]/div[1]")))        # Obtener Datos
+    res = list(cantidad.find_elements(By.XPATH, "(//div[@class='oxd-grid-item oxd-grid-item--gutters'])"))
+    cantidad = (len(res)-3)
+    return cantidad
     print('. ')
-    #print('\nHubicacion: ' + locacion + '\n')
 
-    # Dividir lista
-    if datos.text!='':
-        try:
-            print('.')
-            nombres = datos.text.split("\n")                                                                                                                              # Separar datos
-            contactos = [nombres[i:i + 4] for i in range(0, len(nombres), 4)]
+# Obtener Datos #
+def datos():
+    try:        
+        try: # Obtener Nombre
+            nombre = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/p[1]"))).text        # Obtener Datos
+        except TOE as e:
+            nombre = str("NA")
 
-            x=0
-            for i in contactos:
-                
-                for j in range(4):
-                    if j==0:
-                        #print("Nombre: " + contactos[x][j])
-                        datos_log.write("Nombre: " + contactos[x][j] + '\n')
-                    if j==1:
-                        #print("Puesto: " + contactos[x][j])
-                        datos_log.write("Puesto: " + contactos[x][j] + '\n')
-                    if j==2:
-                        #print("Posicion: " + contactos[x][j])
-                        datos_log.write("Posicion: " + contactos[x][j] + '\n')
-                    if j==3:
-                        #print("Hubicacion: " + contactos[x][j])
-                        datos_log.write("Hubicacion: " + contactos[x][j] + '\n')
-                x += 1
-                #print()
-                datos_log.write('\n')
-        except Exception as e:
-            log.write('Error al dividir lista de nombres: ', e)
-        log.write('\n-- Cantidad: '+ str(x))
+        try: # Obtener Puesto
+            puesto = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/p[2]"))).text        # Obtener Datos
+        except TOE as e:
+            puesto = str("NA")
+
+        try: # Obtener Posicion
+            posicion = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[3]/div[1]/p[1]"))).text        # Obtener Datos
+        except TOE as e:
+            posicion = str("NA")
+
+        try: # Obtener Ubicacion
+            ubicacion = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[3]/div[1]/p[2]"))).text        # Obtener Datos
+        except TOE as e:
+            ubicacion = str("NA")
+
+        try: # Obtener Numero
+            numero = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[5]/div[1]/p[2]"))).text        # Obtener Datos
+        except TOE as a:
+            numero = str("000-000-0000")
+        
+        try: # Obtener Email
+            email = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[6]/div[1]/p[2]"))).text        # Obtener Datos
+        except TOE as e:
+            email = str("NA")
+
+        personas = { # Crear Diccionario
+            "Nombre": nombre,
+            "Puesto": puesto,
+            "Posicion": posicion,
+            "Ubicacion": ubicacion,
+            "Numero": numero,
+            "Email": email
+        }
+        return personas
+        log.write('\n-- Se obienen datos  - ' + now + ' --\n')
+    except WDE as e:
+        print("Error al obtener datos: ", e)
+        log.write("Error al obtener datos: ", e)
+    print('. ')
+# Obtener Datos #
+
+# Ejecutar servicio con filtro #
+def ejecutar(bus):              
+    filtro(bus)                 # Aplicar filtro #
+    cantidad()                  # Obtener cantidad de contactos
+    if cantidad() > 0:
+        print("Se encontraron " + str(cantidad()) + " registros")
+        datos_log.write("Se encontraron " + str(cantidad()) + " registros\n")
+        for x in range(cantidad()):
+            i=x+1
+            seleccionar(i)
+            #time.sleep(2)
+            print(datos())
+            datos_log.write(str(datos()) + "\n")
+            #time.sleep(2)
+            seleccionar(i)
     else:
-        datos_log.write('No se encontraron registros')
-        log.write('\n-- No se encontraron registros')
-    # Imprimir lista #
+        print("No se encontraron datos")
+        datos_log.write("No se encontraron datos\n.")
+        print(".")
+# Ejecutar servicio con filtro #
 
-filtro('Texas R&D')
-time.sleep(2)
-filtro('New York Sales Office')
-time.sleep(2)
-filtro('HQ - CA, USA')
-time.sleep(2)
-filtro('Canadian Regional HQ')
 
-# Esperar
-#time.sleep(5)
+#ejecutar('New York Sales Office')
+#ejecutar('HQ - CA, USA')
+#ejecutar('New York Sales Office')
+ejecutar('Texas R&D')
+
 # Cerrar
 driver.quit()
-log.write('\n\n-- Finaliza Servicio  - ' + now + ' --')
-print('Finaliza el proceso')
+log.write('\n-- Finaliza Servicio  - ' + now + ' --\n\n')
+datos_log.write('..\n-- Finaliza Servicio  - ' + now + ' -- \n.\n')
+print('.\nFinaliza el proceso')
 log.close()
-
-
-
