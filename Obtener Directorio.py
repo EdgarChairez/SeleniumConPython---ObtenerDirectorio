@@ -164,9 +164,9 @@ def ejecutar(bus):
 # Ejecutar servicio con filtro #
 
 
-#ejecutar('New York Sales Office')
-#ejecutar('HQ - CA, USA')
-#ejecutar('New York Sales Office')
+ejecutar('New York Sales Office')
+ejecutar('HQ - CA, USA')
+ejecutar('New York Sales Office')
 ejecutar('Texas R&D')
 
 # Cerrar
