@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options  # Ocultar navegador
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException as WDE
-from selenium.common.exceptions import InvalidSwitchToTargetException as ISE
 from selenium.common.exceptions import TimeoutException as TOE
 from datetime import date
 from datetime import datetime
@@ -85,6 +84,8 @@ def seleccionar(select):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "(//div[contains(@class,'oxd-sheet oxd-sheet--rounded oxd-sheet--white orangehrm-directory-card')])[" + str(select) + "]"))).click() 
 # Seleccionar card #
 
+
+# Obtener cantidad #
 def cantidad():
     time.sleep(2)
     cantidad = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/div[2]/div[1]")))        # Obtener Datos
@@ -92,6 +93,8 @@ def cantidad():
     cantidad = (len(res)-3)
     return cantidad
     print('. ')
+# Obtener cantidad #
+
 
 # Obtener Datos #
 def datos():
@@ -142,6 +145,7 @@ def datos():
     print('. ')
 # Obtener Datos #
 
+
 # Ejecutar servicio con filtro #
 def ejecutar(bus):              
     filtro(bus)                 # Aplicar filtro #
@@ -164,10 +168,37 @@ def ejecutar(bus):
 # Ejecutar servicio con filtro #
 
 
-ejecutar('New York Sales Office')
-ejecutar('HQ - CA, USA')
-ejecutar('New York Sales Office')
-ejecutar('Texas R&D')
+# Ejecutar servicio sin filtro #
+def ejecutar():
+    cantidad()                  # Obtener cantidad de contactos
+    if cantidad() > 0:
+        print("Se encontraron " + str(cantidad()) + " registros")
+        datos_log.write("Se encontraron " + str(cantidad()) + " registros\n")
+        for x in range(cantidad()):
+            i=x+1
+            seleccionar(i)
+            #time.sleep(2)
+            print(datos())
+            datos_log.write(str(datos()) + "\n")
+            #time.sleep(2)
+            seleccionar(i)
+    else:
+        print("No se encontraron datos")
+        datos_log.write("No se encontraron datos\n.")
+        print(".")
+# Ejecutar servicio sin filtro #
+
+opcion = input("¿Ejecutar servicio con filtros? ")
+opcion = opcion.upper()
+
+if opcion == "SI":
+    ejecutar('New York Sales Office')          # Ejecutar con filtro
+    ejecutar('HQ - CA, USA')                   # Ejecutar con filtro
+    ejecutar('New York Sales Office')          # Ejecutar con filtro
+    ejecutar('Texas R&D')                      # Ejecutar con filtro
+else:
+    ejecutar()                                  # Ejecutar sin filtro
+
 
 # Cerrar
 driver.quit()
